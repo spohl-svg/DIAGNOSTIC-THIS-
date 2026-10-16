@@ -1,0 +1,6 @@
+{
+  "name": "RideWire OS - Automotive Diagnostics & Shop Management",
+  "description": "The unified operating system for automotive electrical diagnostics, wire harness repair, shop management, and customer-facing inspections powered by the Gemini Twin engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

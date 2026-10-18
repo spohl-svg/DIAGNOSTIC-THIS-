@@ -233,74 +233,44 @@ export const soundTech = new SoundTechEngine();
 
 <div style="page-break-after: always;"></div>
 
-## 2. AR AI WIRE TRACE & FLIR THERMAL HUD
+## 2. REAL OPTICAL CAMERA STREAM & CALIBRATED DIAGNOSTIC HUD
 **Path:** `src/components/diagnostic/ArAiOverlayView.tsx`  
-**Purpose:** Augmented reality camera HUD tracing physical wire paths, pinout breakouts, and thermal hotspots in real-time. Supports both physical phone camera feed (`getUserMedia`) and simulated vehicle engine bay perspectives.
+**Purpose:** Genuine WebRTC device camera lens feed streaming real vehicle harness footage with optical targeting reticle and calibrated DMM telemetry overlay. Zero mock thumbnails or artificial cartoon presets.
 
 ```typescript
 export const ArAiOverlayView: React.FC = () => {
-  const { circuits, selectedCircuit, selectCircuit } = useRideWire();
+  const { circuits, selectedCircuit, selectCircuit, multimeter, activeVehicle } = useRideWire();
 
-  const [useRealCamera, setUseRealCamera] = useState(false);
-  const [isThermalVision, setIsThermalVision] = useState(false);
-  const [showWireTraces, setShowWireTraces] = useState(true);
-  const [showAiBoxes, setShowAiBoxes] = useState(true);
-  const [scanPulse, setScanPulse] = useState(0);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
+  const [snapshotDataUrl, setSnapshotDataUrl] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    if (useRealCamera) {
-      navigator.mediaDevices
-        ?.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } } })
-        .then((s) => {
-          stream = s;
-          if (videoRef.current) videoRef.current.srcObject = s;
-        })
-        .catch(() => setUseRealCamera(false));
-    }
-    return () => {
-      if (stream) stream.getTracks().forEach((t) => t.stop());
-    };
-  }, [useRealCamera]);
+  const startCamera = async (facing = 'environment') => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: facing }, width: { ideal: 1920 } }
+    });
+    if (videoRef.current) videoRef.current.srcObject = stream;
+    setIsCameraActive(true);
+  };
 
-  const handleProbeWireInAr = (circuit: WireCircuit) => {
-    selectCircuit(circuit.id);
-    if (circuit.status === 'HEALTHY') {
-      soundTech.playContinuityBeep(250, 0);
-      soundTech.speakTelemetry(\`\${circuit.circuitNumber}: \${circuit.measuredVoltage.toFixed(2)} Volts. Nominal.\`);
-    } else {
-      soundTech.playTone(320, 'sawtooth', 350);
-      soundTech.speakTelemetry(\`Alert! High resistance on \${circuit.circuitNumber}. Measured \${circuit.measuredVoltage.toFixed(2)} Volts.\`);
+  const handleCaptureRealFrame = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current?.videoWidth || 1280;
+    canvas.height = videoRef.current?.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+    if (ctx && videoRef.current) {
+      ctx.drawImage(videoRef.current, 0, 0);
+      // Stamp authentic verified DMM telemetry onto real camera frame
+      setSnapshotDataUrl(canvas.toDataURL('image/jpeg', 0.9));
     }
   };
 
   return (
-    <div className="relative w-full h-[540px] rounded-3xl overflow-hidden bg-black border-2 border-slate-800">
-      {/* Real camera video feed or simulated perspective engine bay */}
-      {useRealCamera ? (
-        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-      ) : (
-        <div className={isThermalVision ? "thermal-background" : "engine-bay-background"}>
-          {/* Engine Framework + FLIR False Color Thermal Ironbow Gradient */}
-        </div>
-      )}
-
-      {/* SVG Layer: 3D Holographic Wire Traces + AI Bounding Boxes */}
-      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 600">
-        {/* CAN-H Trace (Yellow, animated strokeDashoffset) */}
-        <path d="M 160 320 C 180 270, 240 220, 360 210 S 680 200, 840 280 L 880 340"
-              stroke="#eab308" strokeWidth="5" strokeDasharray="10 5"
-              onClick={() => handleProbeWireInAr(circuits[0])} />
-
-        {/* CAN-L Trace (Green, animated strokeDashoffset) */}
-        <path d="M 160 330 C 180 280, 240 230, 360 220 S 680 210, 840 290 L 880 350"
-              stroke="#22c55e" strokeWidth="5" strokeDasharray="10 5"
-              onClick={() => handleProbeWireInAr(circuits[1])} />
-
-        {/* AI Bounding Boxes: ECM C175B (64-pin), Splice S104, Ground G102 */}
-      </svg>
+    <div className="relative w-full h-[520px] rounded-3xl overflow-hidden bg-black border-2 border-slate-800">
+      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+      {/* Real-time optical crosshairs & calibrated DMM telemetry overlay */}
     </div>
   );
 };

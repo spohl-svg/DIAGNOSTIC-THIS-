@@ -92,7 +92,7 @@ const MainContent: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-2 rounded-2xl shadow-lg">
               <div className="flex flex-wrap gap-1.5">
                 {[
-                  { id: 'AR_OVERLAY', label: 'AR AI Wire & Thermal HUD', icon: Target },
+                  { id: 'AR_OVERLAY', label: 'Real Camera Optical HUD', icon: Target },
                   { id: 'SOUND_TECH', label: 'Sound Tech Audio Lab', icon: Radio },
                   { id: 'SCANNER', label: 'DMM & Wave Analyzer', icon: Activity },
                   { id: 'PINOUT', label: 'Harness & Pinout Matrix', icon: Layers },
